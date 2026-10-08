@@ -31,3 +31,8 @@ mybatis-plus:
 logging:
   level:
     com.djwk.mall.user: INFO
+
+mall:
+  jwt:
+    secret: djwk-mall-jwt-secret-key-please-change-me-0123456789
+    expire-minutes: 30

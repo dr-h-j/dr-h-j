@@ -98,16 +98,18 @@ curl http://localhost:8080/product/stock/1
 
 预期输出（③）：`{"code":0,"message":"成功","data":{"orderId":1,"orderNo":"M...","totalAmount":"15998.00","remainStock":98}}`
 
-### 4. 不想敲命令？有可视化练手页面
+### 4. 完整前端工程（推荐）：用户商城 + 商家后台
 
 ```bash
-# 浏览器直接打开（无需启动任何前端服务）
-mall-cloud/frontend/index.html
+# 前端工程在 D:\myWork\mall-web（Vue3 + Vite），启动后浏览器打开 http://localhost:5173
+cd D:\myWork\mall-web
+npm run dev
 ```
 
-页面里集成了：注册 / 登录 / 商品列表 / 库存查询 / 下单 / 订单查询，顶部还有四个服务的**健康探活指示灯**。
-网关已配好跨域（CORS），浏览器直连 `http://localhost:8080` 即可。
-推荐玩法：检查服务全绿 → 注册拿 userId → 加载商品 → 下单 → 再查库存看剩余数变少。
+- 用户：注册 → 登录 → 商城选商品下单 → 我的订单；
+- 商家：用 **admin / 123456** 登录自动进入商家后台，查看所有用户的订单（含明细与统计）。
+
+> 另有轻量版单页 `frontend/index.html`（双击即用）可作快速体验。
 
 ## 五、练手路线图（对照分享里的分布式知识逐项落地）
 

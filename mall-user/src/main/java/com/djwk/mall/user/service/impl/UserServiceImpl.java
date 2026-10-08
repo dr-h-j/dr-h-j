@@ -9,12 +9,16 @@ import com.djwk.mall.user.dto.RegisterReq;
 import com.djwk.mall.user.entity.User;
 import com.djwk.mall.user.mapper.UserMapper;
 import com.djwk.mall.user.service.UserService;
+import com.djwk.mall.user.utils.JwtUtil;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 用户服务实现。
@@ -28,6 +32,8 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
+    private final JwtUtil jwtUtil;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public User register(RegisterReq req) {
@@ -62,9 +68,7 @@ public class UserServiceImpl implements UserService {
             throw new BizException(ErrorCode.FORBIDDEN, "账号已被禁用");
         }
         // TODO 换 JWT，并把 token 存 Redis 做会话管理
-        String token = UUID.randomUUID().toString().replace("-", "");
-        log.info("用户登录成功: id={}", user.getId());
-        return new LoginResp(user.getId(), user.getUsername(), token);
+        return new LoginResp(user.getId(), user.getUsername(), jwtUtil.create(user.getId()));
     }
 
     @Override
@@ -74,5 +78,16 @@ public class UserServiceImpl implements UserService {
             throw new BizException(ErrorCode.USER_NOT_FOUND);
         }
         return user;
+    }
+
+    @Override
+    public void logout(String token) {
+        Claims claims = jwtUtil.parse(token);          // 验签 + 拿 jti
+        long remain = claims.getExpiration().getTime() - System.currentTimeMillis();
+        if (remain > 0) {
+            stringRedisTemplate.opsForValue().set(
+                    "jwt:blacklist:" + claims.getId(), "1", remain, TimeUnit.MILLISECONDS);
+        }
+        log.info("用户登出，jti={} 已拉黑", claims.getId());
     }
 }

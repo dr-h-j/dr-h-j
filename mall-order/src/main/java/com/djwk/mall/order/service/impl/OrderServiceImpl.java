@@ -1,5 +1,6 @@
 package com.djwk.mall.order.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.djwk.mall.common.BizException;
 import com.djwk.mall.common.ErrorCode;
 import com.djwk.mall.common.Result;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -99,6 +101,22 @@ public class OrderServiceImpl implements OrderService {
             throw new BizException(ErrorCode.ORDER_NOT_FOUND);
         }
         return order;
+    }
+
+    @Override
+    public List<Order> listOrders(Long userId) {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+        if (userId != null) {
+            wrapper.eq(Order::getUserId, userId);
+        }
+        wrapper.orderByDesc(Order::getCreateTime);
+        return orderMapper.selectList(wrapper);
+    }
+
+    @Override
+    public List<OrderItem> getItems(Long orderId) {
+        return orderItemMapper.selectList(
+                new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId));
     }
 
     /** 解包 Result，业务码非 0 或远程异常时抛 BizException */

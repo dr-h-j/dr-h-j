@@ -18,4 +18,7 @@ public interface UserService {
 
     /** 按 ID 查询 */
     User getById(Long id);
+
+    /** 登出 */
+    void logout(String token);
 }

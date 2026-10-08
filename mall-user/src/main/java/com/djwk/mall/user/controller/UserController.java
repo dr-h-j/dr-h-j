@@ -37,4 +37,10 @@ public class UserController {
     public Result<User> detail(@PathVariable("id") Long id) {
         return Result.ok(userService.getById(id));
     }
+
+    @PostMapping("/logout")
+    public Result logout(@RequestHeader("Authorization") String token) {
+        userService.logout(token);
+        return Result.ok();
+    }
 }

@@ -4,10 +4,13 @@ import com.djwk.mall.common.Result;
 import com.djwk.mall.order.dto.CreateOrderReq;
 import com.djwk.mall.order.dto.CreateOrderResp;
 import com.djwk.mall.order.entity.Order;
+import com.djwk.mall.order.entity.OrderItem;
 import com.djwk.mall.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 订单服务接口。网关路由：/order/**
@@ -29,5 +32,17 @@ public class OrderController {
     @GetMapping("/{id}")
     public Result<Order> detail(@PathVariable("id") Long id) {
         return Result.ok(orderService.getOrder(id));
+    }
+
+    /** 订单列表：userId 为空返回全部（商家后台），非空返回该用户订单（我的订单） */
+    @GetMapping("/list")
+    public Result<List<Order>> list(@RequestParam(value = "userId", required = false) Long userId) {
+        return Result.ok(orderService.listOrders(userId));
+    }
+
+    /** 订单明细（一个订单可能多件商品） */
+    @GetMapping("/{id}/items")
+    public Result<List<OrderItem>> items(@PathVariable("id") Long id) {
+        return Result.ok(orderService.getItems(id));
     }
 }
