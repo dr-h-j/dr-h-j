@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mall-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      config:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        file-extension: yaml
+        # 练手阶段不强制依赖配置中心，本地跑不起来也不阻塞
+        import-check:
+          enabled: false
+    gateway:
+      routes:
+        - id: mall-user
+          uri: lb://mall-user
+          predicates:
+            - Path=/user/**
+        - id: mall-product
+          uri: lb://mall-product
+          predicates:
+            - Path=/product/**
+        - id: mall-order
+          uri: lb://mall-order
+          predicates:
+            - Path=/order/**
+      # 网关默认开启的全局过滤器打印日志
+      discovery:
+        locator:
+          enabled: false
+
+# 网关相关日志
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO

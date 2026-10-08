@@ -1,0 +1,54 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: mall-order
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+      config:
+        server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+        file-extension: yaml
+        import-check:
+          enabled: false
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_ADDR:127.0.0.1:3306}/mall_order?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:123456}
+  data:
+    redis:
+      host: ${REDIS_ADDR:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+
+# Feign 全局配置
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 3000
+        read-timeout: 5000
+
+# Seata 配置（开启分布式事务时启用，见 README「进阶玩法」）
+# seata:
+#   application-id: mall-order
+#   tx-service-group: mall_tx_group
+#   registry:
+#     type: nacos
+#     nacos:
+#       server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+#   config:
+#     type: nacos
+#     nacos:
+#       server-addr: ${NACOS_ADDR:127.0.0.1:8848}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    com.djwk.mall.order: INFO

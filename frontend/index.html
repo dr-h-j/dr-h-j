@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mall-cloud 练手控制台</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --primary: #4f6ef7;
+    --primary-dark: #3a54d6;
+    --text: #1f2430;
+    --muted: #8a93a6;
+    --border: #e6eaf2;
+    --ok: #2fbf71;
+    --err: #e5484d;
+    --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(1200px 600px at 20% -10%, #e8eeff 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 20px 48px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #4f6ef7, #7c5cf7);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px;
+    box-shadow: 0 6px 16px rgba(79, 110, 247, .35);
+  }
+  h1 { font-size: 24px; font-weight: 700; }
+  .sub { color: var(--muted); font-size: 13px; margin: 2px 0 20px; }
+
+  .status-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 12px 16px; margin-bottom: 20px; font-size: 13px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #c3c9d6; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 0 3px rgba(47,191,113,.2); }
+  .dot.off { background: var(--err); box-shadow: 0 0 0 3px rgba(229,72,77,.15); }
+  .status-bar .name { font-weight: 600; }
+  .spacer { flex: 1; }
+  .btn-mini {
+    border: 1px solid var(--border); background: #fff; color: var(--muted);
+    padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;
+    transition: all .15s;
+  }
+  .btn-mini:hover { color: var(--primary); border-color: var(--primary); }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 20px; box-shadow: 0 2px 10px rgba(30,40,80,.04);
+  }
+  .card h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .tag {
+    font-size: 11px; font-weight: 600; color: var(--primary);
+    background: #eef1ff; padding: 2px 8px; border-radius: 6px;
+  }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+  input, select {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: 13px; outline: none; transition: border .15s; background: #fafbfe;
+  }
+  input:focus, select:focus { border-color: var(--primary); background: #fff; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .btn {
+    width: 100%; margin-top: 14px; padding: 10px; border: none; border-radius: 10px;
+    background: var(--primary); color: #fff; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn.ghost { background: #eef1ff; color: var(--primary); }
+  .btn.ghost:hover { background: #e2e8ff; }
+
+  .out {
+    margin-top: 14px; border-radius: 10px; background: #0f1626; color: #c8d3f0;
+    font-family: var(--mono); font-size: 12px; line-height: 1.6;
+    padding: 12px 14px; min-height: 42px; max-height: 220px; overflow: auto;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .out.ok { color: #8ef0c0; }
+  .out.err { color: #ffb3b5; }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 14px; line-height: 1.8; }
+  .hint code {
+    background: #eef1ff; color: var(--primary); padding: 1px 6px; border-radius: 5px;
+    font-family: var(--mono); font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">M</div>
+    <div>
+      <h1>mall-cloud 练手控制台</h1>
+      <div class="sub">前端直连网关 8080 · 注册 → 看商品 → 下单 → 查库存，一条链路点着玩</div>
+    </div>
+  </header>
+
+  <div class="status-bar" id="statusBar">
+    <span class="dot" id="dotGateway"></span>
+    <span class="name">网关 8080</span>
+    <span class="dot" id="dotUser"></span>
+    <span class="name">用户服务</span>
+    <span class="dot" id="dotProduct"></span>
+    <span class="name">商品服务</span>
+    <span class="dot" id="dotOrder"></span>
+    <span class="name">订单服务</span>
+    <span class="spacer"></span>
+    <span id="loginInfo" style="color:var(--muted)">未登录</span>
+    <button class="btn-mini" onclick="checkAll()">检查服务</button>
+  </div>
+
+  <div class="grid">
+    <!-- 用户 -->
+    <div class="card">
+      <h2><span class="tag">用户</span>注册 / 登录</h2>
+      <label>用户名</label>
+      <input id="regUsername" value="loomy" placeholder="3~20 位">
+      <label>密码</label>
+      <input id="regPassword" value="123456" placeholder="6~32 位">
+      <div class="row">
+        <div><label>昵称</label><input id="regNickname" value="小鹿"></div>
+        <div><label>手机号</label><input id="regPhone" value="13800000001"></div>
+      </div>
+      <button class="btn" onclick="register()">注册</button>
+      <button class="btn ghost" onclick="login()">登录（admin / 123456）</button>
+      <div class="out" id="userOut">等待操作…</div>
+    </div>
+
+    <!-- 商品 -->
+    <div class="card">
+      <h2><span class="tag">商品</span>列表 / 库存</h2>
+      <button class="btn" onclick="listProducts()">加载商品列表</button>
+      <label>商品 ID</label>
+      <input id="productId" value="1" placeholder="1~4">
+      <button class="btn ghost" onclick="queryStock()">查询库存</button>
+      <div class="out" id="productOut">等待操作…</div>
+    </div>
+
+    <!-- 下单 -->
+    <div class="card">
+      <h2><span class="tag">订单</span>下单（跨服务调用）</h2>
+      <div class="row">
+        <div><label>用户 ID</label><input id="orderUserId" value="1"></div>
+        <div><label>商品 ID</label><input id="orderProductId" value="1"></div>
+      </div>
+      <label>数量</label>
+      <input id="orderCount" value="2" type="number" min="1">
+      <button class="btn" onclick="createOrder()">下单</button>
+      <div class="hint">链路：<code>mall-order</code> Feign 调 <code>mall-product</code> 原子扣库存 → 本地落订单</div>
+      <div class="out" id="orderOut">等待操作…</div>
+    </div>
+
+    <!-- 订单查询 -->
+    <div class="card">
+      <h2><span class="tag">订单</span>查询</h2>
+      <label>订单 ID</label>
+      <input id="queryOrderId" value="1" placeholder="下单后返回的 orderId">
+      <button class="btn ghost" onclick="queryOrder()">查询订单</button>
+      <div class="out" id="orderQueryOut">等待操作…</div>
+    </div>
+  </div>
+
+  <div class="hint" style="margin-top:20px">
+    💡 玩法提示：先「检查服务」确认 4 个服务都亮绿 → 注册/登录拿 userId → 加载商品列表 → 下单 → 再查一次库存，看剩余库存减少。<br>
+    💡 高级玩法：连续快速多点几次「下单」，试试会不会出现库存不足（<code>3002</code>）——这就是原子 SQL 防超卖的效果；后续把 Seata 开启后，可以停掉商品服务再下单，看全局回滚。
+  </div>
+</div>
+
+<script>
+const BASE = "http://localhost:8080";
+
+async function api(path, options = {}) {
+  const res = await fetch(BASE + path, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+
+function show(el, data, ok = true) {
+  el.classList.toggle("ok", ok);
+  el.classList.toggle("err", !ok);
+  el.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+function setDot(id, on) {
+  const d = document.getElementById(id);
+  d.className = "dot" + (on ? " on" : " off");
+}
+
+function saveLogin(u) {
+  if (u && u.data) {
+    localStorage.setItem("mall_user", JSON.stringify(u.data));
+    document.getElementById("loginInfo").textContent = "已登录: " + u.data.username;
+  }
+}
+
+async function checkAll() {
+  const checks = [
+    ["dotGateway",  () => api("/user/login", { method: "POST", body: JSON.stringify({ username: "admin", password: "123456" }) })],
+    ["dotUser",     () => api("/user/login", { method: "POST", body: JSON.stringify({ username: "admin", password: "123456" }) })],
+    ["dotProduct",  () => api("/product/list")],
+    ["dotOrder",    () => api("/user/login", { method: "POST", body: JSON.stringify({ username: "admin", password: "123456" }) })]
+  ];
+  // 统一用一个请求探测网关连通性，其余用各自接口
+  for (const [id, fn] of checks) {
+    try { await fn(); setDot(id, true); } catch (e) { setDot(id, false); }
+  }
+}
+
+// ---- 用户 ----
+async function register() {
+  const out = document.getElementById("userOut");
+  try {
+    const body = {
+      username: document.getElementById("regUsername").value,
+      password: document.getElementById("regPassword").value,
+      nickname: document.getElementById("regNickname").value,
+      phone: document.getElementById("regPhone").value
+    };
+    const r = await api("/user/register", { method: "POST", body: JSON.stringify(body) });
+    show(out, r, r.code === 0);
+    if (r.code === 0) document.getElementById("orderUserId").value = r.data;
+  } catch (e) { show(out, "请求失败: " + e.message, false); }
+}
+
+async function login() {
+  const out = document.getElementById("userOut");
+  try {
+    const r = await api("/user/login", { method: "POST", body: JSON.stringify({ username: "admin", password: "123456" }) });
+    saveLogin(r);
+    show(out, r, r.code === 0);
+  } catch (e) { show(out, "请求失败: " + e.message, false); }
+}
+
+// ---- 商品 ----
+async function listProducts() {
+  const out = document.getElementById("productOut");
+  try {
+    const r = await api("/product/list");
+    show(out, r, r.code === 0);
+  } catch (e) { show(out, "请求失败: " + e.message, false); }
+}
+
+async function queryStock() {
+  const out = document.getElementById("productOut");
+  try {
+    const id = document.getElementById("productId").value;
+    const r = await api("/product/stock/" + id);
+    show(out, r, r.code === 0);
+  } catch (e) { show(out, "请求失败: " + e.message, false); }
+}
+
+// ---- 订单 ----
+async function createOrder() {
+  const out = document.getElementById("orderOut");
+  try {
+    const body = {
+      userId: Number(document.getElementById("orderUserId").value),
+      productId: Number(document.getElementById("orderProductId").value),
+      count: Number(document.getElementById("orderCount").value)
+    };
+    const r = await api("/order/create", { method: "POST", body: JSON.stringify(body) });
+    show(out, r, r.code === 0);
+    if (r.code === 0) document.getElementById("queryOrderId").value = r.data.orderId;
+  } catch (e) { show(out, "请求失败: " + e.message, false); }
+}
+
+async function queryOrder() {
+  const out = document.getElementById("orderQueryOut");
+  try {
+    const id = document.getElementById("queryOrderId").value;
+    const r = await api("/order/" + id);
+    show(out, r, r.code === 0);
+  } catch (e) { show(out, "请求失败: " + e.message, false); }
+}
+
+// 进入页面自动探活
+checkAll();
+</script>
+</body>
+</html>

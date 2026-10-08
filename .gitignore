@@ -1,0 +1,6 @@
+/mall-gateway/target/
+/mall-common/target/
+/mall-order/target/
+/mall-product/target/
+/mall-user/target/
+/.idea/
